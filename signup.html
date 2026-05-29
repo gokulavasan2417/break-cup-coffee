@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Break Cup | Join the Club</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="login-body">
+
+    <div class="login-container">
+        
+        <div class="login-design-side">
+            <div class="design-overlay"></div>
+            <div class="design-content">
+                <div class="animated-coffee-emoji">☕</div>
+                <h2 class="design-title">Join the <br><span>Break Cup</span> Club</h2>
+                <p class="design-subtitle">Create a free account to start earning bean rewards, saving your favorite customizations, and skipping the wait lines.</p>
+            </div>
+        </div>
+
+        <div class="login-form-side">
+            <a href="index.html" class="back-home-link">&larr; Back to Shop</a>
+
+            <div class="form-wrapper">
+                <h3 class="form-title">Create Account</h3>
+                <p class="form-subtitle">Your journey to better coffee breaks starts here.</p>
+
+                <form id="signup-form">
+                    <div class="input-group">
+                        <label for="fullname">Full Name</label>
+                        <input type="text" id="fullname" placeholder="John Doe" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="email">Email Address</label>
+                        <input type="type" id="email" placeholder="name@example.com" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="password">Create Password</label>
+                        <input type="password" id="password" placeholder="••••••••" required>
+                    </div>
+
+                    <button type="submit" class="login-submit-btn">
+                        <span>Grind & Register</span>
+                    </button>
+                </form>
+
+                <p class="signup-prompt">Already have an account? <a href="login.html">Sign In instead</a></p>
+            </div>
+        </div>
+
+    </div>
+
+   <script>
+    document.getElementById('signup-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const fullname = document.getElementById('fullname').value;
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const btn = document.querySelector('.login-submit-btn');
+
+        btn.innerHTML = '⚡ Roasting Profile...';
+        btn.disabled = true;
+
+        try {
+            // 🔥 REAL API CALL TO BACKEND
+            const response = await fetch('http://localhost:5000/api/signup', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ fullname, email, password })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                alert(data.message);
+                window.location.href = 'login.html'; // Direct to login page
+            } else {
+                alert(data.message);
+                btn.innerHTML = 'Grind & Register';
+                btn.disabled = false;
+            }
+        } catch (error) {
+            alert("Could not connect to the server. Make sure your backend engine is running!");
+            btn.innerHTML = 'Grind & Register';
+            btn.disabled = false;
+        }
+    });
+</script>
+</body>
+</html>

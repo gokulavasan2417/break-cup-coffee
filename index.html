@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Break Cup | Premium Coffee</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <nav class="navbar">
+    <div class="logo">☕ Break Cup</div>
+    
+    <div style="display: flex; gap: 20px; align-items: center;">
+        <div id="auth-status-container">
+            <a href="login.html" class="signin-nav-btn" style="text-decoration: none; color: var(--coffee-dark); font-weight: 600; font-size: 15px;">Sign In</a>
+        </div>
+        
+        <button class="cart-btn" id="cart-toggle">
+            Cup (<span id="cart-count">0</span>)
+        </button>
+    </div>
+</nav>
+
+    <header class="hero">
+        <h1 class="hero-title">Perfectly Brewed<br><span class="italic-text">Moments</span> of Serenity</h1>
+        <p class="hero-subtitle">Step into a cozy atmosphere where premium single-origin beans meet artisanal baking. Your daily ritual, elevated.</p>
+        <a href="#menu-section" class="explore-btn">Explore Menu</a>
+    </header>
+
+    <section id="menu-section" class="menu-section">
+        <h2 class="section-title">Our Artisanal Menu</h2>
+        
+        <div class="filter-container">
+            <button class="filter-btn active" data-category="all">All</button>
+            <button class="filter-btn" data-category="hot">Hot</button>
+            <button class="filter-btn" data-category="cold">Cold</button>
+            <button class="filter-btn" data-category="bakery">Bakery</button>
+        </div>
+
+        <div class="menu-grid" id="menu-container">
+            </div>
+    </section>
+
+    <div class="cart-drawer" id="cart-drawer">
+        <div class="cart-header">
+            <h3>Your Selected Cup</h3>
+            <button class="close-btn" id="cart-close">&times;</button>
+        </div>
+        <div class="cart-items" id="cart-items-container">
+            <p class="empty-msg">Your cup is empty. Add some coffee!</p>
+        </div>
+        <div class="cart-footer" id="cart-footer" style="display: none;">
+            <button class="checkout-btn">Place Pickup Order</button>
+        </div>
+    </div>
+    <div class="drawer-overlay" id="drawer-overlay"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Break Cup | My Profile</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        :root {
+            --bg-cream: #fbf8f3;
+            --coffee-dark: #2f2219;
+            --coffee-deep: #4a3629;
+            --white: #ffffff;
+        }
+        .profile-wrapper {
+            max-width: 900px;
+            margin: 120px auto 40px auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+        }
+        @media (max-width: 768px) {
+            .profile-wrapper { grid-template-columns: 1fr; margin-top: 90px; }
+        }
+        .profile-card, .history-card {
+            background: var(--white);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+        
+        /* Interactive Profile Avatar Container styling */
+        .avatar-container {
+            position: relative;
+            width: 90px;
+            height: 90px;
+            margin-bottom: 20px;
+            cursor: pointer;
+        }
+        .user-avatar {
+            width: 100%;
+            height: 100%;
+            background: var(--bg-cream);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            overflow: hidden;
+            border: 3px solid var(--coffee-dark);
+            transition: all 0.3s ease;
+        }
+        .avatar-container:hover .user-avatar {
+            opacity: 0.8;
+        }
+        .upload-overlay {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            background: var(--coffee-dark);
+            color: #fff;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .profile-card h3 { color: var(--coffee-dark); margin: 0 0 5px 0; font-size: 22px; }
+        .profile-card p { color: #666; font-size: 14px; margin: 0 0 25px 0; }
+        .info-tag { font-size: 13px; font-weight: 600; color: #888; text-transform: uppercase; margin-bottom: 4px; }
+        .info-val { font-size: 15px; color: var(--coffee-deep); margin-bottom: 18px; font-weight: 500; }
+        .order-row {
+            padding: 15px;
+            border-bottom: 1px solid rgba(0,0,0,0.06);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .order-details h4 { margin: 0 0 4px 0; color: var(--coffee-deep); font-size: 15px; }
+        .order-details span { font-size: 12px; color: #999; }
+        .order-price { font-weight: 700; color: var(--coffee-dark); font-size: 16px; }
+        .no-orders-msg { text-align: center; color: #888; padding: 40px 0; font-style: italic; }
+    </style>
+</head>
+<body style="background-color: var(--bg-cream);">
+
+    <nav class="navbar" style="position: fixed; top: 0; width: 100%; box-sizing: border-box; z-index: 100;">
+        <div class="logo" style="cursor: pointer;" onclick="window.location.href='index.html'">☕ Break Cup</div>
+        <a href="index.html" style="text-decoration: none; color: var(--coffee-dark); font-weight: 600; font-size: 14px;">&larr; Back to Shop</a>
+    </nav>
+
+    <div class="profile-wrapper">
+        
+        <div class="profile-card">
+            <div class="avatar-container" onclick="document.getElementById('image-uploader').click()">
+                <div class="user-avatar" id="avatar-display">☕</div>
+                <div class="upload-overlay">+</div>
+            </div>
+            <input type="file" id="image-uploader" accept="image/*" style="display: none;">
+
+            <h3 id="profile-name">Coffee Lover</h3>
+            <p>Club Member Status</p>
+            <hr style="border: none; border-top: 1px solid #eee; margin-bottom: 20px;">
+            
+            <div class="info-tag">Registered Email</div>
+            <div class="info-val" id="profile-email">loading...</div>
+            
+            <div class="info-tag">Preferred Lounge</div>
+            <div class="info-val">Vadapalani, Chennai</div>
+        </div>
+
+        <div class="history-card">
+            <h3 style="color: var(--coffee-deep); margin: 0 0 20px 0; font-size: 20px;">Order Logs & Receipts</h3>
+            <div id="orders-log-list">
+                <p class="no-orders-msg">Loading your previous brews...</p>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const userEmail = localStorage.getItem('userEmail');
+            const username = localStorage.getItem('username');
+            const storedAvatar = localStorage.getItem('userAvatar');
+
+            if (!userEmail) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            document.getElementById('profile-name').textContent = username.charAt(0).toUpperCase() + username.slice(1);
+            document.getElementById('profile-email').textContent = userEmail;
+
+            // Load saved avatar picture state if it exists
+            const avatarDisplay = document.getElementById('avatar-display');
+            if (storedAvatar && storedAvatar.startsWith('data:image')) {
+                avatarDisplay.innerHTML = `<img src="${storedAvatar}" style="width:100%; height:100%; object-fit:cover;">`;
+            }
+
+            // 📸 HANDLER: CONVERT THE IMAGE TO BASE64 AND SAVE TO LOCAL STORAGE
+            document.getElementById('image-uploader').addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        const base64String = event.target.result;
+                        
+                        // Commit to regional storage cache memory
+                        localStorage.setItem('userAvatar', base64String);
+                        
+                        // Update visual card surface instantly
+                        avatarDisplay.innerHTML = `<img src="${base64String}" style="width:100%; height:100%; object-fit:cover;">`;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            // Fetch dynamic order log data arrays from local Node.js engine
+            try {
+                const response = await fetch(`http://localhost:5000/api/orders/${userEmail}`);
+                const data = await response.json();
+                const logContainer = document.getElementById('orders-log-list');
+
+                if (data.success && data.orders.length > 0) {
+                    logContainer.innerHTML = '';
+                    data.orders.forEach(order => {
+                        const formattedDate = new Date(order.order_date).toLocaleDateString('en-IN', {
+                            day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+                        });
+
+                        const row = document.createElement('div');
+                        row.className = 'order-row';
+                        row.innerHTML = `
+                            <div class="order-details">
+                                <h4>${order.items_summary}</h4>
+                                <span>ID: #BRK-${order.order_id} &bull; ${formattedDate}</span>
+                            </div>
+                            <div class="order-price">₹${parseInt(order.total_price)}</div>
+                        `;
+                        logContainer.appendChild(row);
+                    });
+                } else {
+                    logContainer.innerHTML = '<p class="no-orders-msg">No orders placed yet. Time to fill your first cup!</p>';
+                }
+            } catch (error) {
+                console.error(error);
+                document.getElementById('orders-log-list').innerHTML = '<p class="no-orders-msg" style="color: red;">Could not load orders server log feeds.</p>';
+            }
+        });
+    </script>
+</body>
+</html>

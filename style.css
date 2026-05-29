@@ -17,7 +17,7 @@ body {
     overflow-x: hidden;
 }
 
-/* --- 🧭 NAVIGATION BAR --- */
+
 .navbar {
     position: sticky;
     top: 0;
@@ -53,7 +53,6 @@ body {
     background-color: var(--coffee-deep);
 }
 
-/* --- ☕ HERO SECTION WITH ANIMATION --- */
 .hero {
     text-align: center;
     padding: 100px 20px 80px 20px;
@@ -97,7 +96,7 @@ body {
     box-shadow: 0 10px 20px rgba(47, 34, 25, 0.15);
 }
 
-/* --- 🍽️ FILTER CONTROLS --- */
+
 .menu-section {
     max-width: 1100px;
     margin: 0 auto;
@@ -134,7 +133,7 @@ body {
     color: var(--white);
 }
 
-/* --- 📦 CARD GRID & CARD HOVER ANIMATIONS --- */
+
 .menu-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -153,7 +152,7 @@ body {
     animation: scaleIn 0.4s ease-out forwards;
 }
 
-/* Smooth lift and shadowing when mouse rolls over a coffee card */
+
 .menu-card:hover {
     transform: translateY(-8px);
     box-shadow: 0 15px 35px rgba(74, 55, 40, 0.08);
@@ -215,11 +214,11 @@ body {
     color: var(--white);
 }
 
-/* --- 🛍️ SLIDE-OUT PANEL DRAWER --- */
+
 .cart-drawer {
     position: fixed;
     top: 0;
-    right: -450px; /* Hidden offscreen by default */
+    right: -450px;
     width: 100%;
     max-width: 400px;
     height: 100vh;
@@ -234,7 +233,7 @@ body {
 }
 
 .cart-drawer.open {
-    right: 0; /* Slides onscreen smoothly */
+    right: 0; 
 }
 
 .cart-header {
@@ -294,7 +293,7 @@ body {
     cursor: pointer;
 }
 
-/* Backdrop Overlay background layer */
+
 .drawer-overlay {
     position: fixed;
     inset: 0;
@@ -309,7 +308,7 @@ body {
     visibility: visible;
 }
 
-/* --- 🔄 PHYSICS KEYFRAME ANIMATIONS --- */
+
 @keyframes fadeInUp {
     from { opacity: 0; transform: translateY(25px); }
     to { opacity: 1; transform: translateY(0); }
@@ -319,7 +318,7 @@ body {
     from { opacity: 0; transform: scale(0.92); }
     to { opacity: 1; transform: scale(1); }
 }
-/* --- 🚪 COFFEE DESIGN LOGIN STYLES --- */
+
 .login-body {
     height: 100vh;
     display: flex;
@@ -336,11 +335,11 @@ body {
     background: var(--white);
 }
 
-/* --- LEFT SIDE DESIGN PANEL --- */
+
 .login-design-side {
     flex: 1.2;
     position: relative;
-    /* Rich warm coffee dark background color block gradient */
+    
     background: linear-gradient(135deg, #4A3728 0%, #1a130e 100%);
     display: flex;
     align-items: center;
@@ -350,7 +349,7 @@ body {
     overflow: hidden;
 }
 
-/* Subtle graphic steam lines glowing in background */
+
 .login-design-side::before {
     content: '';
     position: absolute;
@@ -396,7 +395,7 @@ body {
     margin: 0;
 }
 
-/* --- RIGHT SIDE INPUT FORM PANEL --- */
+
 .login-form-side {
     flex: 1;
     background: var(--white);
@@ -442,7 +441,7 @@ body {
     margin: 0 0 35px 0;
 }
 
-/* INPUT COMPONENT BLOCKS */
+
 .input-group {
     display: flex;
     flex-direction: column;
@@ -472,7 +471,7 @@ body {
     box-shadow: 0 0 0 4px rgba(214, 163, 115, 0.12);
 }
 
-/* ACTIONS */
+
 .form-actions {
     display: flex;
     justify-content: space-between;
@@ -496,7 +495,7 @@ body {
 }
 .forgot-password:hover { text-decoration: underline; }
 
-/* PREMIUM LOGIN BUTTON */
+
 .login-submit-btn {
     width: 100%;
     background: var(--coffee-dark);
@@ -531,14 +530,14 @@ body {
 }
 .signup-prompt a:hover { text-decoration: underline; }
 
-/* --- 📱 RESPONSIVE ADJUSTMENTS (FOR MOBILES) --- */
+
 @media (max-width: 850px) {
-    .login-design-side { display: none; } /* Hide heavy design graphic on mobile screens */
+    .login-design-side { display: none; }
     .login-form-side { padding: 40px 24px; }
     .back-home-link { left: 24px; top: 24px; }
 }
 
-/* --- 🔄 KEYFRAME KEYFRAMES --- */
+
 @keyframes floatingSteam {
     0% { transform: translateY(0) rotate(0deg); }
     50% { transform: translateY(-8px) rotate(3deg); }

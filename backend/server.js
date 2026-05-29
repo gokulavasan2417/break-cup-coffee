@@ -9,7 +9,7 @@ const PORT = 5000;
 app.use(cors());
 app.use(express.json());
 
-// 🔌 CONNECT TO MYSQL DATABASE
+
 const db = mysql.createConnection({
     host: 'localhost',
     user: 'root',
@@ -25,16 +25,16 @@ db.connect((err) => {
     console.log('⚡ Connected securely to MySQL Workbench database!');
 });
 
-// 🚪 API ROUTE: REGISTER A NEW USER INTO MYSQL
+
 app.post('/api/signup', async (req, res) => {
     const { fullname, email, password } = req.body;
 
     try {
-        // Scramble password securely
+        
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        // SQL Query to insert a new user profile
+       
         const sqlInsert = "INSERT INTO users (fullname, email, password) VALUES (?, ?, ?)";
         
         db.query(sqlInsert, [fullname, email, hashedPassword], (err, result) => {
@@ -53,7 +53,7 @@ app.post('/api/signup', async (req, res) => {
     }
 });
 
-// 🔑 API ROUTE: LOGIN AN EXISTING USER VIA MYSQL
+
 app.post('/api/login', (req, res) => {
     const { email, password } = req.body;
 
@@ -68,7 +68,7 @@ app.post('/api/login', (req, res) => {
 
         const user = results[0];
 
-        // Compare scrambled hashes
+        
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
             return res.status(400).json({ success: false, message: "Incorrect password credentials." });
@@ -78,7 +78,7 @@ app.post('/api/login', (req, res) => {
         res.json({ success: true, message: `Welcome back, ${user.fullname}!`, username: user.fullname });
     });
 });
-// 🛍️ API ROUTE 3: SAVE A NEW CUSTOMER PICKUP ORDER INTO MYSQL
+
 app.post('/api/orders', (req, res) => {
     const { email, items, total } = req.body;
 
@@ -86,8 +86,7 @@ app.post('/api/orders', (req, res) => {
         return res.status(400).json({ success: false, message: "Please log in first before placing an order!" });
     }
 
-    // Convert the array of drinks into a clean readable string format for the database
-    // Example: "2x Classic Espresso, 1x Hazelnut Frappé"
+   
     const itemsSummary = items.map(item => item.name).join(', ');
 
     const sqlOrderInsert = "INSERT INTO orders (user_email, items_summary, total_price) VALUES (?, ?, ?)";
@@ -102,12 +101,11 @@ app.post('/api/orders', (req, res) => {
     });
 });
 
-// 📜 API ROUTE 4: FETCH COMPLETED ORDERS FOR A SPECIFIC USER FROM MYSQL
-// 📜 API ROUTE: FETCH COMPLETED ORDERS FOR A SPECIFIC USER FROM MYSQL
+
 app.get('/api/orders/:email', (req, res) => {
     const userEmail = req.params.email;
 
-    // Use a clean direct query
+   
     const sqlSelectOrders = "SELECT order_id, user_email, items_summary, CAST(total_price AS UNSIGNED) as total_price, order_date FROM orders WHERE user_email = ? ORDER BY order_date DESC";
 
     db.query(sqlSelectOrders, [userEmail], (err, results) => {

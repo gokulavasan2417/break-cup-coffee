@@ -67,8 +67,8 @@
         btn.disabled = true;
 
         try {
-            //REAL API CALL TO BACKEND
-            const response = await fetch('http://localhost:5000/api/login', {
+            
+            const response = await fetch('/api/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password })
@@ -79,11 +79,11 @@
             if (data.success) {
                 alert(data.message);
                 
-                // Save session info to remember who is ordering
+                
                 localStorage.setItem('userEmail', email);
                 localStorage.setItem('username', data.username);
                 
-                window.location.href = 'index.html'; // Go to main shop
+                window.location.href = 'index.html'; 
             } else {
                 alert(data.message);
                 btn.innerHTML = 'Brew My Account';

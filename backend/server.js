@@ -1,8 +1,9 @@
 require('dotenv').config();
+
 const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
-const mysql = require('mysql2');
+const { Pool } = require('pg');
 
 const app = express();
 const PORT = 5000;
@@ -10,115 +11,246 @@ const PORT = 5000;
 app.use(cors());
 app.use(express.json());
 
+// ===============================
+// SUPABASE POSTGRESQL CONNECTION
+// ===============================
 
-const db = mysql.createConnection({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME
-});
-
-db.connect((err) => {
-    if (err) {
-        console.error('❌ Database connection failed: ' + err.stack);
-        return;
+const db = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: {
+        rejectUnauthorized: false
     }
-    console.log('⚡ Connected securely to MySQL Workbench database!');
 });
 
+db.connect()
+    .then(client => {
+        console.log('⚡ Connected successfully to Supabase PostgreSQL!');
+        client.release();
+    })
+    .catch(err => {
+        console.error('❌ Database connection failed:');
+        console.error(err);
+    });
+
+
+// ===============================
+// SIGNUP
+// ===============================
 
 app.post('/api/signup', async (req, res) => {
     const { fullname, email, password } = req.body;
 
     try {
-        
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-       
-        const sqlInsert = "INSERT INTO users (fullname, email, password) VALUES (?, ?, ?)";
-        
-        db.query(sqlInsert, [fullname, email, hashedPassword], (err, result) => {
-            if (err) {
-                if (err.code === 'ER_DUP_ENTRY') {
-                    return res.status(400).json({ success: false, message: "This email is already registered!" });
-                }
-                return res.status(500).json({ success: false, message: "Database query error." });
-            }
-            console.log(`📦 New user saved to MySQL: ${fullname}`);
-            res.status(201).json({ success: true, message: "Account brewed successfully!" });
+        const sqlInsert = `
+            INSERT INTO users (fullname, email, password)
+            VALUES ($1, $2, $3)
+            RETURNING id
+        `;
+
+        const result = await db.query(sqlInsert, [
+            fullname,
+            email,
+            hashedPassword
+        ]);
+
+        console.log(`📦 New user saved to Supabase: ${fullname}`);
+
+        res.status(201).json({
+            success: true,
+            message: "Account brewed successfully!"
         });
 
     } catch (error) {
-        res.status(500).json({ success: false, message: "Server error during registration." });
+        console.error('Signup error:', error);
+
+        // PostgreSQL duplicate key error
+        if (error.code === '23505') {
+            return res.status(400).json({
+                success: false,
+                message: "This email is already registered!"
+            });
+        }
+
+        res.status(500).json({
+            success: false,
+            message: "Server error during registration."
+        });
     }
 });
 
 
-app.post('/api/login', (req, res) => {
+// ===============================
+// LOGIN
+// ===============================
+
+app.post('/api/login', async (req, res) => {
     const { email, password } = req.body;
 
-    const sqlSelect = "SELECT * FROM users WHERE email = ?";
-    
-    db.query(sqlSelect, [email], async (err, results) => {
-        if (err) return res.status(500).json({ success: false, message: "Database query error." });
-        
-        if (results.length === 0) {
-            return res.status(400).json({ success: false, message: "Account not found. Please sign up!" });
+    try {
+        const sqlSelect = `
+            SELECT *
+            FROM users
+            WHERE email = $1
+        `;
+
+        const result = await db.query(sqlSelect, [email]);
+
+        if (result.rows.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: "Account not found. Please sign up!"
+            });
         }
 
-        const user = results[0];
+        const user = result.rows[0];
 
-        
-        const isMatch = await bcrypt.compare(password, user.password);
+        const isMatch = await bcrypt.compare(
+            password,
+            user.password
+        );
+
         if (!isMatch) {
-            return res.status(400).json({ success: false, message: "Incorrect password credentials." });
+            return res.status(400).json({
+                success: false,
+                message: "Incorrect password credentials."
+            });
         }
 
-        console.log(`🔓 User logged in from MySQL records: ${user.fullname}`);
-        res.json({ success: true, message: `Welcome back, ${user.fullname}!`, username: user.fullname });
-    });
+        console.log(
+            `🔓 User logged in from Supabase records: ${user.fullname}`
+        );
+
+        res.json({
+            success: true,
+            message: `Welcome back, ${user.fullname}!`,
+            username: user.fullname
+        });
+
+    } catch (error) {
+        console.error('Login error:', error);
+
+        res.status(500).json({
+            success: false,
+            message: "Database query error."
+        });
+    }
 });
 
-app.post('/api/orders', (req, res) => {
+
+// ===============================
+// PLACE ORDER
+// ===============================
+
+app.post('/api/orders', async (req, res) => {
     const { email, items, total } = req.body;
 
     if (!email) {
-        return res.status(400).json({ success: false, message: "Please log in first before placing an order!" });
+        return res.status(400).json({
+            success: false,
+            message: "Please log in first before placing an order!"
+        });
     }
 
-   
-    const itemsSummary = items.map(item => item.name).join(', ');
+    try {
+        const itemsSummary = items
+            .map(item => item.name)
+            .join(', ');
 
-    const sqlOrderInsert = "INSERT INTO orders (user_email, items_summary, total_price) VALUES (?, ?, ?)";
+        const sqlOrderInsert = `
+            INSERT INTO orders
+                (user_email, items_summary, total_price)
+            VALUES
+                ($1, $2, $3)
+            RETURNING order_id
+        `;
 
-    db.query(sqlOrderInsert, [email, itemsSummary, total], (err, result) => {
-        if (err) {
-            console.error(err);
-            return res.status(500).json({ success: false, message: "Database error while placing order." });
-        }
-        console.log(`🛒 Order #${result.insertId} successfully logged for ${email}`);
-        res.status(201).json({ success: true, message: "Order successfully placed! Your hot brew will be ready for pickup in 10 minutes. ☕" });
-    });
+        const result = await db.query(sqlOrderInsert, [
+            email,
+            itemsSummary,
+            total
+        ]);
+
+        const orderId = result.rows[0].order_id;
+
+        console.log(
+            `🛒 Order #${orderId} successfully logged for ${email}`
+        );
+
+        res.status(201).json({
+            success: true,
+            message:
+                "Order successfully placed! Your hot brew will be ready for pickup in 10 minutes. ☕"
+        });
+
+    } catch (error) {
+        console.error('Order error:', error);
+
+        res.status(500).json({
+            success: false,
+            message: "Database error while placing order."
+        });
+    }
 });
 
 
-app.get('/api/orders/:email', (req, res) => {
+// ===============================
+// GET ORDER HISTORY
+// ===============================
+
+app.get('/api/orders/:email', async (req, res) => {
     const userEmail = req.params.email;
 
-   
-    const sqlSelectOrders = "SELECT order_id, user_email, items_summary, CAST(total_price AS UNSIGNED) as total_price, order_date FROM orders WHERE user_email = ? ORDER BY order_date DESC";
+    try {
+        const sqlSelectOrders = `
+            SELECT
+                order_id,
+                user_email,
+                items_summary,
+                total_price,
+                order_date
+            FROM orders
+            WHERE user_email = $1
+            ORDER BY order_date DESC
+        `;
 
-    db.query(sqlSelectOrders, [userEmail], (err, results) => {
-        if (err) {
-            console.error("❌ SQL Query Error:", err);
-            return res.status(500).json({ success: false, message: "Database error retrieving order history." });
-        }
-        console.log(`📦 Sent ${results.length} order history rows to browser for: ${userEmail}`);
-        res.json({ success: true, orders: results });
+        const result = await db.query(
+            sqlSelectOrders,
+            [userEmail]
+        );
+
+        console.log(
+            `📦 Sent ${result.rows.length} order history rows to browser for: ${userEmail}`
+        );
+
+        res.json({
+            success: true,
+            orders: result.rows
+        });
+
+    } catch (error) {
+        console.error("❌ SQL Query Error:", error);
+
+        res.status(500).json({
+            success: false,
+            message: "Database error retrieving order history."
+        });
+    }
+});
+
+
+// ===============================
+// START SERVER
+// ===============================
+
+if (require.main === module) {
+    app.listen(PORT, () => {
+        console.log(
+            `☕ Break Cup backend engine online at: http://localhost:${PORT}`
+        );
     });
-});
+}
 
-app.listen(PORT, () => {
-    console.log(`☕ Break Cup backend engine online at: http://localhost:${PORT}`);
-});
+module.exports = app;

@@ -1,4 +1,5 @@
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '.env') });
 
 const express = require('express');
 const cors = require('cors');
@@ -10,6 +11,7 @@ const PORT = 5000;
 
 app.use(cors());
 app.use(express.json());
+app.use(express.static(path.join(__dirname, '..')));
 
 // ===============================
 // SUPABASE POSTGRESQL CONNECTION
@@ -38,7 +40,17 @@ db.connect()
 // ===============================
 
 app.post('/api/signup', async (req, res) => {
-    const { fullname, email, password } = req.body;
+    let { fullname, email, password } = req.body || {};
+
+    if (!fullname || !email || !password) {
+        return res.status(400).json({
+            success: false,
+            message: "Full name, email, and password are all required."
+        });
+    }
+
+    fullname = fullname.trim();
+    email = email.trim().toLowerCase();
 
     try {
         const salt = await bcrypt.genSalt(10);
@@ -87,13 +99,22 @@ app.post('/api/signup', async (req, res) => {
 // ===============================
 
 app.post('/api/login', async (req, res) => {
-    const { email, password } = req.body;
+    let { email, password } = req.body || {};
+
+    if (!email || !password) {
+        return res.status(400).json({
+            success: false,
+            message: "Email and password are required."
+        });
+    }
+
+    email = email.trim().toLowerCase();
 
     try {
         const sqlSelect = `
             SELECT *
             FROM users
-            WHERE email = $1
+            WHERE LOWER(email) = $1
         `;
 
         const result = await db.query(sqlSelect, [email]);
@@ -145,7 +166,7 @@ app.post('/api/login', async (req, res) => {
 // ===============================
 
 app.post('/api/orders', async (req, res) => {
-    const { email, items, total } = req.body;
+    let { email, items, total } = req.body || {};
 
     if (!email) {
         return res.status(400).json({
@@ -154,9 +175,18 @@ app.post('/api/orders', async (req, res) => {
         });
     }
 
+    if (!items || !Array.isArray(items) || items.length === 0) {
+        return res.status(400).json({
+            success: false,
+            message: "Order must contain at least one item!"
+        });
+    }
+
+    email = email.trim().toLowerCase();
+
     try {
         const itemsSummary = items
-            .map(item => item.name)
+            .map(item => (item && item.name) ? item.name : 'Unknown Item')
             .join(', ');
 
         const sqlOrderInsert = `
@@ -170,7 +200,7 @@ app.post('/api/orders', async (req, res) => {
         const result = await db.query(sqlOrderInsert, [
             email,
             itemsSummary,
-            total
+            total || 0
         ]);
 
         const orderId = result.rows[0].order_id;
@@ -201,7 +231,14 @@ app.post('/api/orders', async (req, res) => {
 // ===============================
 
 app.get('/api/orders/:email', async (req, res) => {
-    const userEmail = req.params.email;
+    const userEmail = req.params.email ? req.params.email.trim().toLowerCase() : '';
+
+    if (!userEmail) {
+        return res.status(400).json({
+            success: false,
+            message: "Email is required."
+        });
+    }
 
     try {
         const sqlSelectOrders = `
@@ -212,7 +249,7 @@ app.get('/api/orders/:email', async (req, res) => {
                 total_price,
                 order_date
             FROM orders
-            WHERE user_email = $1
+            WHERE LOWER(user_email) = $1
             ORDER BY order_date DESC
         `;
 

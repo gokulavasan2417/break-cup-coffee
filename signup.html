@@ -57,8 +57,8 @@
     document.getElementById('signup-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         
-        const fullname = document.getElementById('fullname').value;
-        const email = document.getElementById('email').value;
+        const fullname = document.getElementById('fullname').value.trim();
+        const email = document.getElementById('email').value.trim().toLowerCase();
         const password = document.getElementById('password').value;
         const btn = document.querySelector('.login-submit-btn');
 

@@ -1,4 +1,11 @@
 {
+  "name": "break-cup-coffee",
+  "version": "1.0.0",
+  "description": "Break Cup Coffee Shop website and backend",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js"
+  },
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",

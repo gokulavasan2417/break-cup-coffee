@@ -135,7 +135,8 @@
                 return;
             }
 
-            document.getElementById('profile-name').textContent = username.charAt(0).toUpperCase() + username.slice(1);
+            const displayName = username ? (username.charAt(0).toUpperCase() + username.slice(1)) : (userEmail.split('@')[0]);
+            document.getElementById('profile-name').textContent = displayName;
             document.getElementById('profile-email').textContent = userEmail;
 
             
@@ -164,7 +165,7 @@
 
             
             try {
-                const response = await fetch(`http://localhost:5000/api/orders/${userEmail}`);
+                const response = await fetch(`/api/orders/${encodeURIComponent(userEmail)}`);
                 const data = await response.json();
                 const logContainer = document.getElementById('orders-log-list');
 
